@@ -53,6 +53,9 @@
             background: rgba(156, 163, 175, 0.7);
         }
         /* Transitions */
+        #splash {
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease;
+        }
         .drawer-transition {
             transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -76,8 +79,8 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-[#1e1f22] dark:text-gray-100 min-h-full flex flex-col overflow-x-hidden">
-    <!-- Splash Screen -->
-    <div id="splash" class="fixed inset-0 bg-white dark:bg-[#1e1f22] flex flex-col justify-center items-center z-[9999] transition-opacity duration-300 ease-out">
+    <!-- Splash Screen (1-second display) -->
+    <div id="splash" class="fixed inset-0 bg-white dark:bg-[#1e1f22] flex flex-col justify-center items-center z-[9999]">
         <img src="https://raw.githubusercontent.com/ayushacharya05/Note-it/refs/heads/main/images/icon.webp" alt="Note It Logo" class="w-24 h-24 rounded-3xl shadow-xl mb-4 animate-pulse">
         <h2 class="font-semibold text-2xl tracking-tight text-blue-600 dark:text-blue-400">Note It</h2>
         <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Your Professional Nepali Workspace</p>
@@ -120,7 +123,7 @@
         </div>
         
         <div class="p-4 border-t border-gray-100 dark:border-gray-700/50 text-xs text-gray-400 dark:text-gray-500 text-center">
-            Note It v3.5 • Auto-Delete Empty Labels
+            Note It v3.7 • 1s Fast Splash
         </div>
     </aside>
 
@@ -317,10 +320,11 @@
             renderCustomLabels();
             renderNotes();
             
-            requestAnimationFrame(() => {
+            // 1-Second Delay Splash Screen Exit
+            setTimeout(() => {
                 splash.style.opacity = '0';
-                setTimeout(() => splash.remove(), 300);
-            });
+                setTimeout(() => splash.remove(), 400);
+            }, 1000);
         });
 
         // Auto-purge custom labels that have 0 active notes attached
@@ -389,7 +393,6 @@
                 }
                 document.getElementById('editLabelSelect').value = trimmed;
             } else {
-                // If text is empty, reset select to default and clear unassigned labels
                 document.getElementById('editLabelSelect').value = 'Personal';
                 cleanUnusedCustomLabels();
                 renderCustomLabels();
