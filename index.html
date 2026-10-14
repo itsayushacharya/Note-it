@@ -52,7 +52,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(156, 163, 175, 0.7);
         }
-        /* Butter smooth animations */
+        /* Transitions */
         .drawer-transition {
             transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -70,7 +70,7 @@
         #editorOverlay {
             transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        #settingsModalContent {
+        #settingsModalContent, #labelDialogContent {
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
         }
     </style>
@@ -94,16 +94,21 @@
             <div onclick="switchView('all', this)" class="drawer-item active flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-amber-50 dark:hover:bg-gray-700/50 bg-amber-100/80 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200" data-view="all">
                 <i class="fa-solid fa-pen-nib w-8 text-center text-lg mr-3 text-blue-500"></i> Notes
             </div>
-            <div onclick="switchView('Personal', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Personal">
-                <i class="fa-solid fa-tag w-8 text-center text-lg mr-3 text-blue-500"></i> Personal
-            </div>
-            <div onclick="switchView('Work', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Work">
-                <i class="fa-solid fa-briefcase w-8 text-center text-lg mr-3 text-emerald-500"></i> Work
-            </div>
-            <div onclick="switchView('Ideas', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Ideas">
-                <i class="fa-solid fa-bolt w-8 text-center text-lg mr-3 text-yellow-500"></i> Ideas
-            </div>
             
+            <div id="defaultLabelsContainer" class="space-y-1">
+                <div onclick="switchView('Personal', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Personal">
+                    <i class="fa-solid fa-tag w-8 text-center text-lg mr-3 text-blue-500"></i> Personal
+                </div>
+                <div onclick="switchView('Work', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Work">
+                    <i class="fa-solid fa-briefcase w-8 text-center text-lg mr-3 text-emerald-500"></i> Work
+                </div>
+                <div onclick="switchView('Ideas', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="Ideas">
+                    <i class="fa-solid fa-bolt w-8 text-center text-lg mr-3 text-yellow-500"></i> Ideas
+                </div>
+            </div>
+
+            <div id="customDrawerLabelsContainer" class="space-y-1 pt-1"></div>
+
             <hr class="my-3 border-gray-200 dark:border-gray-700">
             
             <div onclick="switchView('trash', this)" class="drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50" data-view="trash">
@@ -115,7 +120,7 @@
         </div>
         
         <div class="p-4 border-t border-gray-100 dark:border-gray-700/50 text-xs text-gray-400 dark:text-gray-500 text-center">
-            Note It v3.1 • Optimized Performance
+            Note It v3.5 • Auto-Delete Empty Labels
         </div>
     </aside>
 
@@ -130,7 +135,6 @@
             </button>
             <h1 id="viewTitle" class="text-lg font-medium text-gray-800 dark:text-gray-100 truncate">All Notes</h1>
             
-            <!-- Expandable Search Bar -->
             <div id="searchContainer" class="hidden flex-1 max-w-xl mx-2 relative items-center">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-400 text-sm"></i>
                 <input type="text" id="searchInput" placeholder="Search notes by title or content..." class="w-full bg-gray-100 dark:bg-gray-700/60 text-gray-900 dark:text-gray-100 text-sm rounded-full pl-10 pr-10 py-2 border-none outline-none focus:ring-2 focus:ring-blue-500 transition">
@@ -165,6 +169,25 @@
         <i class="fa-solid fa-plus text-2xl"></i>
     </button>
 
+    <!-- Centered Android Material 3 Custom Label Popup Dialog -->
+    <div id="labelDialogModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-[60] hidden flex items-center justify-center p-4">
+        <div id="labelDialogContent" class="bg-white dark:bg-[#2b2d31] rounded-3xl shadow-2xl max-w-sm w-full p-6 transform scale-95 opacity-0 border border-gray-100 dark:border-gray-700/60">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1 flex items-center">
+                <i class="fa-solid fa-tag text-blue-500 mr-2.5"></i> New Label
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">Enter a name for your custom category.</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="customLabelInput" placeholder="Label name (e.g., Study, Finance)" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-gray-100 outline-none transition">
+                
+                <div class="flex items-center justify-end space-x-2 pt-2">
+                    <button onclick="closeLabelDialog()" class="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">Cancel</button>
+                    <button onclick="confirmCreateLabel()" class="px-5 py-2 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settingsModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-[#2b2d31] rounded-3xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0" id="settingsModalContent">
@@ -178,7 +201,6 @@
             </div>
             
             <div class="py-6 space-y-6">
-                <!-- Dark Mode Toggle -->
                 <div class="flex items-center justify-between">
                     <div>
                         <span class="font-medium text-gray-800 dark:text-gray-200">Dark Mode</span>
@@ -189,7 +211,6 @@
                         <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                 </div>
-                <!-- Font Size Selector -->
                 <div>
                     <label class="block font-medium text-gray-800 dark:text-gray-200 mb-1">Note Font Size</label>
                     <p class="text-xs text-gray-400 mb-2">Adjust text legibility inside note cards</p>
@@ -200,7 +221,6 @@
                         <option value="22px">Extra Large (22px)</option>
                     </select>
                 </div>
-                <!-- Sorting Selector -->
                 <div>
                     <label class="block font-medium text-gray-800 dark:text-gray-200 mb-1">Sort Notes By</label>
                     <p class="text-xs text-gray-400 mb-2">Choose your preferred order</p>
@@ -226,10 +246,11 @@
             </button>
             
             <div class="flex items-center space-x-3">
-                <select id="editLabelSelect" class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-xl px-3 py-1.5 border-none outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="editLabelSelect" onchange="handleLabelSelect(this)" class="bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-xl px-3 py-1.5 border-none outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="Personal">Personal</option>
                     <option value="Work">Work</option>
                     <option value="Ideas">Ideas</option>
+                    <option value="__NEW__" class="font-bold text-blue-600">+ Add Custom Label...</option>
                 </select>
                 <button onclick="saveNote()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-full shadow-md transition flex items-center space-x-1">
                     <i class="fa-solid fa-check mr-1"></i> Done
@@ -241,7 +262,6 @@
             <input type="text" id="editTitleInput" placeholder="Title" class="w-full text-2xl sm:text-3xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 mb-4">
             <textarea id="editTextarea" placeholder="Take a note..." class="w-full flex-1 bg-transparent border-none outline-none text-gray-800 dark:text-gray-200 placeholder-gray-400 resize-none leading-relaxed note-content-text min-h-[300px]"></textarea>
             
-            <!-- Trash Management Actions -->
             <div id="trashTools" class="hidden mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row gap-3">
                 <button onclick="restoreCurrentNote()" class="flex-1 py-3 px-4 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 font-medium rounded-xl transition flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -258,6 +278,7 @@
     <!-- Core App Script -->
     <script>
         let notes = JSON.parse(localStorage.getItem('noteit_pro_v3') || '[]');
+        let customLabels = JSON.parse(localStorage.getItem('noteit_custom_labels') || '[]');
         let currentView = 'all';
         let currentEditingId = null;
         let isGridView = true;
@@ -276,7 +297,11 @@
         const settingsModal = document.getElementById('settingsModal');
         const settingsModalContent = document.getElementById('settingsModalContent');
 
-        // Initialization
+        // Centered Label Dialog Elements
+        const labelDialogModal = document.getElementById('labelDialogModal');
+        const labelDialogContent = document.getElementById('labelDialogContent');
+        const customLabelInput = document.getElementById('customLabelInput');
+
         window.addEventListener('load', () => {
             if (localStorage.getItem('ni_dark') === 'true') {
                 document.documentElement.classList.add('dark');
@@ -288,11 +313,99 @@
                 document.documentElement.style.setProperty('--note-font-size', savedSize);
             }
 
+            cleanUnusedCustomLabels();
+            renderCustomLabels();
             renderNotes();
+            
             requestAnimationFrame(() => {
                 splash.style.opacity = '0';
                 setTimeout(() => splash.remove(), 300);
             });
+        });
+
+        // Auto-purge custom labels that have 0 active notes attached
+        function cleanUnusedCustomLabels() {
+            const usedLabels = new Set(notes.filter(n => !n.trashed).map(n => n.label));
+            customLabels = customLabels.filter(lbl => usedLabels.has(lbl));
+            localStorage.setItem('noteit_custom_labels', JSON.stringify(customLabels));
+        }
+
+        // Custom Labels Management
+        function renderCustomLabels() {
+            const drawerContainer = document.getElementById('customDrawerLabelsContainer');
+            drawerContainer.innerHTML = '';
+            
+            customLabels.forEach(label => {
+                const item = document.createElement('div');
+                item.className = "drawer-item flex items-center px-4 py-3 rounded-r-full font-medium cursor-pointer transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50";
+                item.setAttribute('data-view', label);
+                item.onclick = function() { switchView(label, this); };
+                item.innerHTML = `<i class="fa-solid fa-bookmark w-8 text-center text-lg mr-3 text-purple-500"></i> ${escapeHTML(label)}`;
+                drawerContainer.appendChild(item);
+            });
+
+            const selectEl = document.getElementById('editLabelSelect');
+            selectEl.innerHTML = `
+                <option value="Personal">Personal</option>
+                <option value="Work">Work</option>
+                <option value="Ideas">Ideas</option>
+                ${customLabels.map(lbl => `<option value="${escapeHTML(lbl)}">${escapeHTML(lbl)}</option>`).join('')}
+                <option value="__NEW__" class="font-bold text-blue-600">+ Add Custom Label...</option>
+            `;
+        }
+
+        function handleLabelSelect(selectEl) {
+            if (selectEl.value === '__NEW__') {
+                openLabelDialog();
+            }
+        }
+
+        function openLabelDialog() {
+            customLabelInput.value = '';
+            labelDialogModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                labelDialogContent.classList.remove('scale-95', 'opacity-0');
+                labelDialogContent.classList.add('scale-100', 'opacity-100');
+            });
+            setTimeout(() => customLabelInput.focus(), 150);
+        }
+
+        function closeLabelDialog() {
+            labelDialogContent.classList.remove('scale-100', 'opacity-100');
+            labelDialogContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                labelDialogModal.classList.add('hidden');
+                document.getElementById('editLabelSelect').value = 'Personal';
+            }, 200);
+        }
+
+        function confirmCreateLabel() {
+            const trimmed = customLabelInput.value.trim();
+            if (trimmed) {
+                if (!['Personal', 'Work', 'Ideas', ...customLabels].includes(trimmed)) {
+                    customLabels.push(trimmed);
+                    localStorage.setItem('noteit_custom_labels', JSON.stringify(customLabels));
+                    renderCustomLabels();
+                }
+                document.getElementById('editLabelSelect').value = trimmed;
+            } else {
+                // If text is empty, reset select to default and clear unassigned labels
+                document.getElementById('editLabelSelect').value = 'Personal';
+                cleanUnusedCustomLabels();
+                renderCustomLabels();
+            }
+
+            labelDialogContent.classList.remove('scale-100', 'opacity-100');
+            labelDialogContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                labelDialogModal.classList.add('hidden');
+            }, 200);
+        }
+
+        customLabelInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                confirmCreateLabel();
+            }
         });
 
         // Drawer Controls
@@ -311,7 +424,6 @@
         menuBtn.onclick = () => toggleDrawer(true);
         menuBackdrop.onclick = () => toggleDrawer(false);
 
-        // Sidebar Navigation
         function switchView(view, el) {
             currentView = view;
             document.querySelectorAll('.drawer-item').forEach(item => {
@@ -325,7 +437,6 @@
             renderNotes();
         }
 
-        // Search Handlers
         searchBtn.onclick = () => {
             viewTitle.classList.add('hidden');
             searchBtn.classList.add('hidden');
@@ -345,7 +456,6 @@
 
         searchInput.oninput = (e) => renderNotes(e.target.value.toLowerCase());
 
-        // Settings Modals
         function openSettings() {
             toggleDrawer(false);
             settingsModal.classList.remove('hidden');
@@ -373,7 +483,6 @@
             localStorage.setItem('ni_size', size);
         }
 
-        // Grid/List Layout Toggle
         function toggleLayout() {
             isGridView = !isGridView;
             const btnIcon = document.querySelector('#layoutToggleBtn i');
@@ -381,12 +490,14 @@
             renderNotes();
         }
 
-        // Add/Edit Note Trigger
         document.getElementById('addBtn').onclick = () => {
             currentEditingId = null;
             document.getElementById('editTitleInput').value = '';
             document.getElementById('editTextarea').value = '';
-            document.getElementById('editLabelSelect').value = currentView === 'all' || currentView === 'trash' ? 'Personal' : currentView;
+            
+            const defaultSel = currentView === 'all' || currentView === 'trash' ? 'Personal' : currentView;
+            document.getElementById('editLabelSelect').value = defaultSel;
+            
             document.getElementById('trashTools').classList.add('hidden');
             editorOverlay.classList.remove('hidden');
             requestAnimationFrame(() => editorOverlay.classList.remove('translate-y-full'));
@@ -438,6 +549,8 @@
                 });
             }
 
+            cleanUnusedCustomLabels();
+            renderCustomLabels();
             syncStorage();
             closeEditor();
         }
@@ -447,6 +560,8 @@
             const note = notes.find(n => n.id === noteId);
             if (note) {
                 note.trashed = true;
+                cleanUnusedCustomLabels();
+                renderCustomLabels();
                 syncStorage();
             }
         }
@@ -462,6 +577,8 @@
 
         function deleteNoteForever() {
             notes = notes.filter(n => n.id !== currentEditingId);
+            cleanUnusedCustomLabels();
+            renderCustomLabels();
             syncStorage();
             closeEditor();
         }
@@ -471,7 +588,6 @@
             renderNotes();
         }
 
-        // Render Performance Optimization
         function renderNotes(searchQuery = '') {
             notesContainer.className = isGridView 
                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" 
@@ -511,13 +627,14 @@
 
                 const badgeColor = note.label === 'Work' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' :
                                    note.label === 'Ideas' ? 'bg-yellow-100 dark:bg-yellow-950/60 text-yellow-700 dark:text-yellow-300' :
-                                   'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300';
+                                   note.label === 'Personal' ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' :
+                                   'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300';
 
                 card.innerHTML = `
                     <div>
                         <div class="flex items-start justify-between mb-2">
                             <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-base truncate flex-1 pr-2">${escapeHTML(note.title)}</h3>
-                            <span class="text-[10px] font-medium px-2.5 py-1 rounded-full ${badgeColor}">${note.label || 'Personal'}</span>
+                            <span class="text-[10px] font-medium px-2.5 py-1 rounded-full ${badgeColor}">${escapeHTML(note.label || 'Personal')}</span>
                         </div>
                         <p class="text-gray-600 dark:text-gray-300 note-content-text line-clamp-4 whitespace-pre-wrap mb-4">${escapeHTML(note.text || 'No additional text')}</p>
                     </div>
