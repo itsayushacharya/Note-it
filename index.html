@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Note It</title>
+  <meta name="description" content="Note It - Modern note-taking web application with pastel aesthetics, responsive layout, and offline persistence.">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              surface: '#F4F4F6',
+              darkSurface: '#18191E',
+            }
+          },
+          borderRadius: {
+            '3xl': '1.5rem',
+            '4xl': '2rem',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --base-font-size: 15px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: var(--base-font-size);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* Note Body Preview and Editor dynamic font size scaling */
+    .note-text-body, .editor-textarea {
+      font-size: var(--base-font-size);
+      line-height: 1.6;
+    }
+
+    /* Custom thin scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.65);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Smooth cubic-bezier transitions */
+    .bezier-transition {
+      transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .slide-bezier {
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+    }
+    .modal-bezier {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease-out;
+    }
+
+    /* Authentic Pastel Card Palettes matching reference image */
+    .card-color-blue {
+      background-color: #D6E6FE;
+      color: #121826;
+      border: 1px solid rgba(214, 230, 254, 0.85);
+    }
+    .dark .card-color-blue {
+      background-color: #1A2639;
+      color: #E2E8F0;
+      border: 1px solid rgba(147, 197, 253, 0.2);
+    }
+
+    .card-color-pink {
+      background-color: #FCE3F4;
+      color: #2D102A;
+      border: 1px solid rgba(252, 227, 244, 0.85);
+    }
+    .dark .card-color-pink {
+      background-color: #31182D;
+      color: #FCE7F3;
+      border: 1px solid rgba(249, 168, 212, 0.2);
+    }
+
+    .card-color-yellow {
+      background-color: #FEF0BD;
+      color: #312502;
+      border: 1px solid rgba(254, 240, 189, 0.85);
+    }
+    .dark .card-color-yellow {
+      background-color: #2F2812;
+      color: #FEF3C7;
+      border: 1px solid rgba(253, 224, 71, 0.2);
+    }
+
+    .card-color-green {
+      background-color: #BAEED3;
+      color: #0A2B1A;
+      border: 1px solid rgba(186, 238, 211, 0.85);
+    }
+    .dark .card-color-green {
+      background-color: #132E20;
+      color: #D1FAE5;
+      border: 1px solid rgba(110, 231, 183, 0.2);
+    }
+
+    .card-color-peach {
+      background-color: #FEE1D3;
+      color: #361708;
+      border: 1px solid rgba(254, 225, 211, 0.85);
+    }
+    .dark .card-color-peach {
+      background-color: #311B13;
+      color: #FFEDD5;
+      border: 1px solid rgba(253, 186, 116, 0.2);
+    }
+
+    .card-color-purple {
+      background-color: #E9DFFC;
+      color: #21113B;
+      border: 1px solid rgba(233, 223, 252, 0.85);
+    }
+    .dark .card-color-purple {
+      background-color: #26193A;
+      color: #F3E8FF;
+      border: 1px solid rgba(216, 180, 254, 0.2);
+    }
+
+    .card-color-neutral {
+      background-color: #FFFFFF;
+      color: #1E293B;
+      border: 1px solid #E2E8F0;
+    }
+    .dark .card-color-neutral {
+      background-color: #1F2937;
+      color: #F3F4F6;
+      border: 1px solid #374151;
+    }
+
+    /* Pulse animation for 1-second splash screen */
+    @keyframes subtlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+    .splash-logo-pulse {
+      animation: subtlePulse 1s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#FCFCFD] dark:bg-[#0D0E12] text-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+
+  <!-- 1-SECOND SPLASH SCREEN WITH LOGO + FADE-OUT -->
+  <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-[#0D0E12] transition-all duration-500 ease-out">
+    <div class="relative flex flex-col items-center splash-logo-pulse">
+      <div class="w-20 h-20 rounded-3xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl mb-4">
+        <i class="fa-solid fa-note-sticky text-3xl"></i>
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">Note It</h1>
+      <p class="text-xs text-zinc-400 dark:text-zinc-500 font-medium tracking-wide mt-1">Capture your vibe instantly</p>
+    </div>
+  </div>
+
+  <!-- STICKY BLURRED HEADER WITH INLINE SEARCH -->
+  <header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 dark:bg-[#0D0E12]/85 border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 py-3 transition-colors duration-200">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+      
+      <!-- Drawer Menu Hamburger Button -->
+      <button id="open-drawer-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 bezier-transition flex-shrink-0" title="Open Navigation Menu" aria-label="Open Drawer">
+        <i class="fa-solid fa-bars-staggered text-lg"></i>
+      </button>
+
+      <!-- Inline Search Pill (Exact UI match from reference image) -->
+      <div class="relative flex-1 max-w-xl">
+        <div class="relative flex items-center">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 text-zinc-400 text-sm pointer-events-none"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search for notes" 
+            class="w-full bg-[#F4F4F6] dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 pl-11 pr-10 py-2.5 rounded-full text-sm font-normal outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-400 bezier-transition"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button id="clear-search-btn" class="hidden absolute right-3 w-5 h-5 rounded-full bg-zinc-300 dark:bg-zinc-600 text-zinc-600 dark:text-zinc-200 text-xs flex items-center justify-center hover:bg-zinc-400 dark:hover:bg-zinc-500 bezier-transition" title="Clear search">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        <!-- Grid / List Toggle -->
+        <button id="grid-list-toggle-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Toggle Grid/List View" aria-label="Toggle View Layout">
+          <i id="grid-list-icon" class="fa-solid fa-table-cells-large text-base"></i>
+        </button>
+
+        <!-- Sort Menu Toggle -->
+        <div class="relative">
+          <button id="sort-menu-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Sort Notes" aria-label="Sort Options">
+            <i class="fa-solid fa-arrow-down-wide-short text-base"></i>
+          </button>
+          <!-- Sort Dropdown Popover -->
+          <div id="sort-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-50 text-sm">
+            <div class="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Sort By</div>
+            <button class="sort-option w-full px-4 py-2 text-left flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800" data-sort="newest">
+              <span>Newest First</span>
+              <i class="sort-check fa-solid fa-check text-xs"></i>
+            </button>
+            <button class="sort-option w-full px-4 py-2 text-left flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800" data-sort="oldest">
+              <span>Oldest First</span>
+              <i class="sort-check fa-solid fa-check text-xs hidden"></i>
+            </button>
+            <button class="sort-option w-full px-4 py-2 text-left flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800" data-sort="title_asc">
+              <span>Title (A – Z)</span>
+              <i class="sort-check fa-solid fa-check text-xs hidden"></i>
+            </button>
+            <button class="sort-option w-full px-4 py-2 text-left flex items-center justify-between hover:bg-zinc-100 dark:hover:bg-zinc-800" data-sort="title_desc">
+              <span>Title (Z – A)</span>
+              <i class="sort-check fa-solid fa-check text-xs hidden"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notification Bell (Directly from reference image UI) -->
+        <button id="notification-bell-btn" class="relative w-10 h-10 rounded-full flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Notifications & Tips">
+          <i class="fa-regular fa-bell text-lg"></i>
+          <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900"></span>
+        </button>
+
+        <!-- Dark / Light Mode Quick Toggle -->
+        <button id="header-theme-toggle-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Toggle Theme">
+          <i class="theme-icon fa-regular fa-moon text-base"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-4 sm:py-6 flex flex-col gap-4">
+
+    <!-- HORIZONTAL DATE STRIP (Exact UI match from reference image: Tue 23 Apr, Wed 24 Apr, etc.) -->
+    <section class="flex flex-col gap-1.5" aria-label="Date Filter Strip">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider" id="calendar-header-title">Timeline</span>
+        <button id="clear-date-filter-btn" class="hidden text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">Show All Dates</button>
+      </div>
+      <div id="date-strip-container" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 px-1">
+        <!-- Rendered dynamically matching reference screenshot -->
+      </div>
+    </section>
+
+    <!-- HORIZONTAL CATEGORY / LABEL PILLS BAR (Exact UI match from reference image: All, Important, Lecture notes, etc.) -->
+    <section class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-1" id="category-pills-container" aria-label="Label Filter Bar">
+      <!-- "All" pill + category pills rendered dynamically -->
+    </section>
+
+    <!-- ACTIVE VIEW BANNER / STATUS -->
+    <div id="view-status-bar" class="flex items-center justify-between px-1 pt-1 pb-2">
+      <div class="flex items-center gap-2">
+        <h2 id="view-title" class="text-lg font-bold text-zinc-800 dark:text-zinc-100">All Notes</h2>
+        <span id="view-count-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">0</span>
+      </div>
+      <!-- Trash Controls (Visible only in Trash mode) -->
+      <div id="trash-controls" class="hidden flex items-center gap-2">
+        <button id="empty-trash-btn" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/60 bezier-transition flex items-center gap-1.5">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Empty Trash</span>
+        </button>
+        <button id="exit-trash-btn" class="px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700 bezier-transition">
+          Back to Notes
+        </button>
+      </div>
+    </div>
+
+    <!-- NOTES CONTAINER (Responsive 1-4 cols grid or list) -->
+    <section id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max items-start min-h-[300px]">
+      <!-- Note cards rendered dynamically -->
+    </section>
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div class="w-16 h-16 rounded-3xl bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 dark:text-zinc-500 flex items-center justify-center text-2xl mb-4">
+        <i id="empty-state-icon" class="fa-regular fa-note-sticky"></i>
+      </div>
+      <h3 id="empty-state-title" class="text-lg font-bold text-zinc-700 dark:text-zinc-300">No notes found</h3>
+      <p id="empty-state-desc" class="text-sm text-zinc-400 dark:text-zinc-500 max-w-xs mt-1 mb-5">Create your first note by clicking the plus button below!</p>
+      <button id="empty-create-btn" class="px-5 py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold hover:opacity-90 bezier-transition flex items-center gap-2 shadow-lg">
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Create Note</span>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- FLOATING ACTION BUTTON (FAB) (Exact UI match from reference image: Round black circle with white plus) -->
+  <button 
+    id="fab-create-btn" 
+    class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 bezier-transition cursor-pointer group"
+    title="Create Note (N)"
+    aria-label="Create Note"
+  >
+    <i class="fa-solid fa-plus text-2xl group-hover:rotate-90 bezier-transition"></i>
+  </button>
+
+  <!-- OFF-CANVAS DRAWER -->
+  <div id="drawer-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none bezier-transition"></div>
+  <aside id="drawer" class="fixed top-0 bottom-0 left-0 w-80 max-w-[85vw] bg-white dark:bg-[#121318] shadow-2xl z-50 transform -translate-x-full slide-bezier flex flex-col border-r border-zinc-200/80 dark:border-zinc-800/80">
+    <!-- Drawer Header -->
+    <div class="p-5 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-note-sticky text-lg"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-lg leading-tight text-zinc-900 dark:text-white">Note It</h2>
+          <span class="text-xs text-zinc-400">Personal Knowledge</span>
+        </div>
+      </div>
+      <button id="close-drawer-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Navigation Content -->
+    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <!-- Main Views -->
+      <div class="space-y-1">
+        <div class="px-3 py-1 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Overview</div>
+        <button class="drawer-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium bezier-transition bg-black text-white dark:bg-white dark:text-black" data-view="all">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-note-sticky text-base w-5 text-center"></i>
+            <span>All Notes</span>
+          </div>
+          <span id="drawer-all-count" class="px-2 py-0.5 text-xs font-bold rounded-full bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black">0</span>
+        </button>
+      </div>
+
+      <!-- Labels Navigation -->
+      <div class="space-y-1">
+        <div class="px-3 py-1 flex items-center justify-between">
+          <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Labels</span>
+          <button id="drawer-manage-labels-btn" class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Manage</span>
+          </button>
+        </div>
+        <div id="drawer-labels-list" class="space-y-0.5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Trash & Settings -->
+      <div class="space-y-1 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+        <div class="px-3 py-1 text-xs font-semibold text-zinc-400 uppercase tracking-wider">System</div>
+        <button class="drawer-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" data-view="trash">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-trash-can text-base w-5 text-center text-red-500"></i>
+            <span>Trash</span>
+          </div>
+          <span id="drawer-trash-count" class="px-2 py-0.5 text-xs font-bold rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">0</span>
+        </button>
+        <button id="drawer-settings-btn" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-gear text-base w-5 text-center text-zinc-500"></i>
+            <span>Settings</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="p-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-medium text-zinc-500">Theme</span>
+      </div>
+      <button id="drawer-theme-toggle-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-medium text-zinc-800 dark:text-zinc-200 bezier-transition">
+        <i class="theme-icon fa-regular fa-moon"></i>
+        <span id="theme-mode-text">Dark Mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- FULL-SCREEN / SLIDE-UP NOTE EDITOR -->
+  <div id="editor-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 opacity-0 pointer-events-none bezier-transition"></div>
+  <section 
+    id="note-editor" 
+    class="fixed inset-x-0 bottom-0 top-4 sm:top-10 md:top-14 max-w-4xl mx-auto bg-white dark:bg-[#14151B] rounded-t-[2.5rem] shadow-2xl z-50 transform translate-y-full slide-bezier flex flex-col overflow-hidden border border-zinc-200/80 dark:border-zinc-800"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Note Editor"
+  >
+    <!-- Editor Header Toolbar -->
+    <div class="px-6 py-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <button id="close-editor-btn" class="w-9 h-9 rounded-full flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Close Editor">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span id="editor-status-text" class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">New Note</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Trash Mode Actions -->
+        <div id="editor-trash-actions" class="hidden flex items-center gap-2">
+          <button id="restore-note-btn" class="px-4 py-2 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 bezier-transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Restore</span>
+          </button>
+          <button id="delete-forever-btn" class="px-4 py-2 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/60 bezier-transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash"></i>
+            <span>Delete Forever</span>
+          </button>
+        </div>
+
+        <!-- Normal Mode Actions -->
+        <div id="editor-normal-actions" class="flex items-center gap-2">
+          <button id="editor-pin-btn" class="w-9 h-9 rounded-full flex items-center justify-center text-zinc-400 hover:text-amber-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Pin Note">
+            <i class="fa-solid fa-thumbtack"></i>
+          </button>
+          <button id="editor-delete-btn" class="hidden w-9 h-9 rounded-full flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition" title="Move to Trash">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+          <button id="save-note-btn" class="px-5 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold hover:opacity-90 active:scale-95 bezier-transition shadow-md flex items-center gap-2">
+            <i class="fa-solid fa-check text-xs"></i>
+            <span>Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor Scrollable Body -->
+    <div class="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4">
+      
+      <!-- Meta Controls: Label selector, Color Picker, Date display -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800">
+        <!-- Label Select -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-zinc-400"><i class="fa-solid fa-tag mr-1"></i>Label:</span>
+          <select id="editor-label-select" class="bg-white dark:bg-zinc-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Color Palette Swatches -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-medium text-zinc-400 mr-1">Color:</span>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border-2 border-black dark:border-white ring-2 ring-offset-2 ring-transparent transition-transform scale-110" data-color="blue" style="background-color: #D6E6FE;" title="Pastel Blue"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 transition-transform hover:scale-105" data-color="pink" style="background-color: #FCE3F4;" title="Pastel Pink"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 transition-transform hover:scale-105" data-color="yellow" style="background-color: #FEF0BD;" title="Pastel Yellow"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 transition-transform hover:scale-105" data-color="green" style="background-color: #BAEED3;" title="Pastel Mint Green"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 transition-transform hover:scale-105" data-color="peach" style="background-color: #FEE1D3;" title="Pastel Peach"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 transition-transform hover:scale-105" data-color="purple" style="background-color: #E9DFFC;" title="Pastel Purple"></button>
+          <button type="button" class="color-swatch-btn w-6 h-6 rounded-full border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 transition-transform hover:scale-105" data-color="neutral" title="Neutral"></button>
+        </div>
+
+        <!-- Note Date -->
+        <div class="text-xs text-zinc-400 flex items-center gap-1">
+          <i class="fa-regular fa-calendar"></i>
+          <span id="editor-date-display">Today</span>
+        </div>
+      </div>
+
+      <!-- Title Input -->
+      <div>
+        <input 
+          type="text" 
+          id="editor-title-input" 
+          placeholder="Title" 
+          class="w-full bg-transparent text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white placeholder-zinc-300 dark:placeholder-zinc-600 outline-none pb-2"
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- Note Content Textarea -->
+      <div class="flex-1 flex flex-col min-h-[260px]">
+        <textarea 
+          id="editor-content-input" 
+          placeholder="Write your note here... Tip: use 1. 2. 3. for numbered lists or • / - for bullet points!" 
+          class="editor-textarea flex-1 w-full bg-transparent resize-none text-zinc-800 dark:text-zinc-200 placeholder-zinc-300 dark:placeholder-zinc-600 outline-none font-normal leading-relaxed"
+          spellcheck="true"
+        ></textarea>
+      </div>
+
+      <!-- Live character and word count -->
+      <div class="flex items-center justify-between text-xs text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <span id="editor-stats">0 words • 0 characters</span>
+        <span class="text-[11px] italic">Preserves formatting & lists cleanly</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MATERIAL 3 STYLE CUSTOM LABEL DIALOG (Scale & Fade animation) -->
+  <div id="label-dialog-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none bezier-transition">
+    <div id="label-dialog" class="w-full max-w-md bg-white dark:bg-[#16171E] rounded-3xl p-6 shadow-2xl transform scale-95 opacity-0 modal-bezier border border-zinc-200 dark:border-zinc-800 flex flex-col gap-4">
+      
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-300">
+            <i class="fa-solid fa-tags text-sm"></i>
+          </div>
+          <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Manage Labels</h3>
+        </div>
+        <button id="close-label-dialog-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-zinc-500 dark:text-zinc-400">
+        Add custom labels to categorize your notes. Labels with zero notes can be automatically cleaned up.
+      </p>
+
+      <!-- Add New Label Input -->
+      <div class="flex gap-2">
+        <input 
+          type="text" 
+          id="new-label-input" 
+          placeholder="New label name (e.g. Travel)" 
+          class="flex-1 bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 px-4 py-2.5 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+          maxlength="24"
+        >
+        <button id="add-label-btn" class="px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black rounded-2xl text-sm font-semibold hover:opacity-90 bezier-transition">
+          Add
+        </button>
+      </div>
+
+      <!-- Existing Labels List -->
+      <div class="max-h-56 overflow-y-auto space-y-1.5 pr-1" id="label-dialog-list">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Auto-purge action button -->
+      <div class="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+        <button id="purge-unused-labels-btn" class="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-broom"></i>
+          <span>Auto-purge unused labels</span>
+        </button>
+        <button id="done-label-dialog-btn" class="px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold hover:bg-zinc-200 dark:hover:bg-zinc-700">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL (Material 3 style) -->
+  <div id="settings-dialog-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none bezier-transition">
+    <div id="settings-dialog" class="w-full max-w-md bg-white dark:bg-[#16171E] rounded-3xl p-6 shadow-2xl transform scale-95 opacity-0 modal-bezier border border-zinc-200 dark:border-zinc-800 flex flex-col gap-5">
+      
+      <!-- Settings Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-700 dark:text-zinc-300">
+            <i class="fa-solid fa-sliders text-sm"></i>
+          </div>
+          <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Settings</h3>
+        </div>
+        <button id="close-settings-dialog-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Setting: Dark Mode -->
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800">
+          <div>
+            <div class="text-sm font-semibold text-zinc-900 dark:text-white">Dark Mode</div>
+            <div class="text-xs text-zinc-400">Easy on the eyes at night</div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="settings-theme-toggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black dark:peer-checked:bg-white dark:after:bg-zinc-900"></div>
+          </label>
+        </div>
+
+        <!-- Setting: Base Font Size (14px - 22px) -->
+        <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-semibold text-zinc-900 dark:text-white">Reading Font Size</div>
+              <div class="text-xs text-zinc-400">Card & editor font scaling</div>
+            </div>
+            <span id="font-size-value-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">15px</span>
+          </div>
+          <input 
+            type="range" 
+            id="font-size-slider" 
+            min="14" 
+            max="22" 
+            step="1" 
+            value="15" 
+            class="w-full accent-black dark:accent-white cursor-pointer"
+          >
+          <div class="flex justify-between text-[11px] text-zinc-400 px-0.5">
+            <span>Small (14px)</span>
+            <span>Default (15px)</span>
+            <span>Large (22px)</span>
+          </div>
+        </div>
+
+        <!-- Setting: Default Sort Order -->
+        <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 space-y-2">
+          <div class="text-sm font-semibold text-zinc-900 dark:text-white">Default Note Sorting</div>
+          <select id="settings-sort-select" class="w-full bg-white dark:bg-zinc-800 text-xs font-medium px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="title_asc">Title (A – Z)</option>
+            <option value="title_desc">Title (Z – A)</option>
+          </select>
+        </div>
+
+        <!-- Setting: Data Backup & Reset -->
+        <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 space-y-3">
+          <div class="text-sm font-semibold text-zinc-900 dark:text-white">Storage & Backup</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button id="export-data-btn" class="px-3 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center justify-center gap-1.5 bezier-transition">
+              <i class="fa-solid fa-download"></i>
+              <span>Export JSON</span>
+            </button>
+            <label class="px-3 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700 flex items-center justify-center gap-1.5 bezier-transition cursor-pointer text-center">
+              <i class="fa-solid fa-upload"></i>
+              <span>Import JSON</span>
+              <input type="file" id="import-data-file" accept=".json" class="hidden">
+            </label>
+          </div>
+          <button id="reset-sample-data-btn" class="w-full px-3 py-2 rounded-xl text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center justify-center gap-1.5 bezier-transition">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Restore Demo Notes (from reference image)</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Footer Done button -->
+      <div class="pt-2">
+        <button id="done-settings-btn" class="w-full py-2.5 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-sm hover:opacity-90 bezier-transition">
+          Save Settings
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-black/90 dark:bg-white/90 text-white dark:text-black text-xs font-semibold shadow-2xl opacity-0 pointer-events-none bezier-transition flex items-center gap-2">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+    <span id="toast-message">Action successful</span>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ==========================================================================
+         1. CONSTANTS & SEED DATA (Exact match to reference image)
+         ========================================================================== */
+      const STORAGE_KEYS = {
+        NOTES: 'noteit_notes_v1',
+        LABELS: 'noteit_labels_v1',
+        SETTINGS: 'noteit_settings_v1',
+      };
+
+      const DEFAULT_LABELS = [
+        'Important',
+        'Lecture notes',
+        'To-do lists',
+        'Shopping list',
+        'Personal',
+        'Work',
+        'Ideas'
+      ];
+
+      // Exact demo notes from the reference image screenshot
+      const SEED_NOTES = [
+        {
+          id: 'note_seed_1',
+          title: 'Product Meeting',
+          content: '1. Review of Previous Action Items\n2. Product Development Update\n3. User Feedback and Customer Insights\n4. Competitive Analysis\n5. Roadmap Discussion',
+          label: 'Work',
+          color: 'blue',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-23T10:00:00.000Z',
+          updatedAt: '2024-04-23T10:00:00.000Z'
+        },
+        {
+          id: 'note_seed_2',
+          title: 'To-do list',
+          content: '1. Reply to emails\n2. Prepare presentation slides for the marketing meeting\n3. Conduct research on competitor products\n4. Schedule and plan customer interviews\n5. Take a break and recharge',
+          label: 'To-do lists',
+          color: 'pink',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-24T09:30:00.000Z',
+          updatedAt: '2024-04-24T09:30:00.000Z'
+        },
+        {
+          id: 'note_seed_3',
+          title: 'Shopping list',
+          content: '1. Rice\n2. Pasta\n3. Cereal\n4. Yogurt\n5. Cheese\n6. Butter',
+          label: 'Shopping list',
+          color: 'yellow',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-24T14:15:00.000Z',
+          updatedAt: '2024-04-24T14:15:00.000Z'
+        },
+        {
+          id: 'note_seed_4',
+          title: 'Important',
+          content: '• Summarize the key action items identified during the meeting.\n• Assign responsible team members and set deadlines for each action item.\n• Clarify the next steps and ensure everyone is clear on their respective tasks.',
+          label: 'Important',
+          color: 'green',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-25T11:45:00.000Z',
+          updatedAt: '2024-04-25T11:45:00.000Z'
+        },
+        {
+          id: 'note_seed_5',
+          title: 'Notes',
+          content: '• Share insights and findings from recent competitive analysis.',
+          label: 'Ideas',
+          color: 'peach',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-26T16:20:00.000Z',
+          updatedAt: '2024-04-26T16:20:00.000Z'
+        },
+        {
+          id: 'note_seed_6',
+          title: 'Product Meeting',
+          content: '1. Review of Previous Action Items\n2. Marketing collateral sign-off\n3. Next release retrospective',
+          label: 'Lecture notes',
+          color: 'yellow',
+          pinned: false,
+          trashed: false,
+          date: '2024-04-27T08:00:00.000Z',
+          updatedAt: '2024-04-27T08:00:00.000Z'
+        }
+      ];
+
+      /* ==========================================================================
+         2. STATE MANAGEMENT
+         ========================================================================== */
+      let state = {
+        notes: [],
+        labels: [],
+        settings: {
+          darkMode: false,
+          fontSize: 15,
+          sortOrder: 'newest',
+          layout: 'grid' // 'grid' or 'list'
+        },
+        currentView: 'all', // 'all', 'trash', or label name
+        selectedDateFilter: null, // null = all dates, or 'YYYY-MM-DD'
+        searchQuery: '',
+        activeEditingNoteId: null,
+        selectedEditorColor: 'blue'
+      };
+
+      /* ==========================================================================
+         3. UTILITIES & XSS DEFENSE
+         ========================================================================== */
+      function escapeHTML(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>'"]/g, function (tag) {
+          return ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+          }[tag] || tag);
+        });
+      }
+
+      function formatPreviewText(text) {
+        if (!text) return '';
+        const lines = text.split('\n');
+        return lines.map(line => {
+          const escaped = escapeHTML(line);
+          return `<div class="leading-relaxed">${escaped || '&nbsp;'}</div>`;
+        }).join('');
+      }
+
+      function formatDateDisplay(isoString) {
+        if (!isoString) return '';
+        try {
+          const date = new Date(isoString);
+          return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+          });
+        } catch (e) {
+          return isoString;
+        }
+      }
+
+      function showToast(message, icon = 'fa-circle-check', isError = false) {
+        const toast = document.getElementById('toast');
+        const msgEl = document.getElementById('toast-message');
+        const iconEl = document.getElementById('toast-icon');
+
+        msgEl.textContent = message;
+        iconEl.className = `fa-solid ${icon} ${isError ? 'text-red-400' : 'text-emerald-400 dark:text-emerald-500'}`;
+        toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+        }, 2200);
+      }
+
+      /* ==========================================================================
+         4. STORAGE FUNCTIONS
+         ========================================================================== */
+      function loadState() {
+        try {
+          // Load Notes
+          const savedNotes = localStorage.getItem(STORAGE_KEYS.NOTES);
+          if (savedNotes) {
+            state.notes = JSON.parse(savedNotes);
+          } else {
+            state.notes = [...SEED_NOTES];
+            saveNotes();
+          }
+
+          // Load Labels
+          const savedLabels = localStorage.getItem(STORAGE_KEYS.LABELS);
+          if (savedLabels) {
+            state.labels = JSON.parse(savedLabels);
+          } else {
+            state.labels = [...DEFAULT_LABELS];
+            saveLabels();
+          }
+
+          // Load Settings
+          const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+          if (savedSettings) {
+            state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
+          } else {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              state.settings.darkMode = true;
+            }
+            saveSettings();
+          }
+        } catch (err) {
+          console.error('Error loading state from localStorage:', err);
+          state.notes = [...SEED_NOTES];
+          state.labels = [...DEFAULT_LABELS];
+        }
+      }
+
+      function saveNotes() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(state.notes));
+        } catch (err) {
+          console.error('Failed to save notes:', err);
+          showToast('Storage quota exceeded or error', 'fa-triangle-exclamation', true);
+        }
+      }
+
+      function saveLabels() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.LABELS, JSON.stringify(state.labels));
+        } catch (err) {
+          console.error('Failed to save labels:', err);
+        }
+      }
+
+      function saveSettings() {
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
+        } catch (err) {
+          console.error('Failed to save settings:', err);
+        }
+      }
+
+      /* ==========================================================================
+         5. THEME & FONT SIZE APPLIERS
+         ========================================================================== */
+      function applyTheme() {
+        const html = document.documentElement;
+        const themeIcons = document.querySelectorAll('.theme-icon');
+        const themeText = document.getElementById('theme-mode-text');
+        const themeCheckbox = document.getElementById('settings-theme-toggle');
+
+        if (state.settings.darkMode) {
+          html.classList.add('dark');
+          html.classList.remove('light');
+          themeIcons.forEach(i => {
+            i.className = 'theme-icon fa-solid fa-sun text-amber-400';
+          });
+          if (themeText) themeText.textContent = 'Light Mode';
+          if (themeCheckbox) themeCheckbox.checked = true;
+        } else {
+          html.classList.remove('dark');
+          html.classList.add('light');
+          themeIcons.forEach(i => {
+            i.className = 'theme-icon fa-regular fa-moon text-zinc-700 dark:text-zinc-300';
+          });
+          if (themeText) themeText.textContent = 'Dark Mode';
+          if (themeCheckbox) themeCheckbox.checked = false;
+        }
+      }
+
+      function applyFontSize() {
+        const size = state.settings.fontSize || 15;
+        document.documentElement.style.setProperty('--base-font-size', `${size}px`);
+        const badge = document.getElementById('font-size-value-badge');
+        const slider = document.getElementById('font-size-slider');
+        if (badge) badge.textContent = `${size}px`;
+        if (slider) slider.value = size;
+      }
+
+      /* ==========================================================================
+         6. DATE STRIP RENDERING (Exact UI match from reference image)
+         ========================================================================== */
+      function renderDateStrip() {
+        const container = document.getElementById('date-strip-container');
+        const clearBtn = document.getElementById('clear-date-filter-btn');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        // Reference screenshot displays: Tue 23 Apr, Wed 24 Apr, Thu 25 Apr, Fri 26 Apr, Sat 27 Apr, Sun 28 Apr
+        const referenceDates = [
+          { day: 'Tue', num: 23, month: 'Apr', iso: '2024-04-23' },
+          { day: 'Wed', num: 24, month: 'Apr', iso: '2024-04-24' },
+          { day: 'Thu', num: 25, month: 'Apr', iso: '2024-04-25' },
+          { day: 'Fri', num: 26, month: 'Apr', iso: '2024-04-26' },
+          { day: 'Sat', num: 27, month: 'Apr', iso: '2024-04-27' },
+          { day: 'Sun', num: 28, month: 'Apr', iso: '2024-04-28' },
+        ];
+
+        // Also add today if today is not in that range
+        const today = new Date();
+        const todayIso = today.toISOString().split('T')[0];
+        const hasToday = referenceDates.some(d => d.iso === todayIso);
+        if (!hasToday) {
+          referenceDates.push({
+            day: today.toLocaleDateString('en-US', { weekday: 'short' }),
+            num: today.getDate(),
+            month: today.toLocaleDateString('en-US', { month: 'short' }),
+            iso: todayIso,
+            isToday: true
+          });
+        }
+
+        referenceDates.forEach(d => {
+          const isSelected = state.selectedDateFilter === d.iso;
+
+          const pill = document.createElement('button');
+          pill.className = `flex flex-col items-center justify-between min-w-[66px] h-[88px] rounded-3xl p-3 bezier-transition cursor-pointer border ${
+            isSelected 
+              ? 'bg-black text-white dark:bg-white dark:text-black border-transparent shadow-md' 
+              : 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'
+          }`;
+          pill.innerHTML = `
+            <span class="text-xs font-normal opacity-90 leading-none">${d.day}</span>
+            <span class="text-2xl font-bold tracking-tight leading-none">${d.num}</span>
+            <span class="text-xs font-normal opacity-90 leading-none">${d.month}</span>
+          `;
+
+          pill.addEventListener('click', () => {
+            if (state.selectedDateFilter === d.iso) {
+              state.selectedDateFilter = null;
+            } else {
+              state.selectedDateFilter = d.iso;
+            }
+            renderDateStrip();
+            renderNotes();
+          });
+
+          container.appendChild(pill);
+        });
+
+        if (clearBtn) {
+          if (state.selectedDateFilter) {
+            clearBtn.classList.remove('hidden');
+          } else {
+            clearBtn.classList.add('hidden');
+          }
+        }
+      }
+
+      /* ==========================================================================
+         7. CATEGORY PILLS RENDERING (Exact UI match from reference image)
+         ========================================================================== */
+      function renderCategoryPills() {
+        const container = document.getElementById('category-pills-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // "All" Pill
+        const isAll = state.currentView === 'all';
+        const allBtn = document.createElement('button');
+        allBtn.className = `px-5 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap bezier-transition cursor-pointer ${
+          isAll 
+            ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' 
+            : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'
+        }`;
+        allBtn.textContent = 'All';
+        allBtn.addEventListener('click', () => {
+          state.currentView = 'all';
+          renderCategoryPills();
+          renderNotes();
+          updateDrawerNavigation();
+        });
+        container.appendChild(allBtn);
+
+        // Individual Label Pills
+        state.labels.forEach(label => {
+          const isSelected = state.currentView === label;
+          const btn = document.createElement('button');
+          btn.className = `px-4 py-2 rounded-full font-medium text-xs sm:text-sm whitespace-nowrap bezier-transition cursor-pointer ${
+            isSelected 
+              ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' 
+              : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'
+          }`;
+          btn.textContent = label;
+          btn.addEventListener('click', () => {
+            state.currentView = label;
+            renderCategoryPills();
+            renderNotes();
+            updateDrawerNavigation();
+          });
+          container.appendChild(btn);
+        });
+
+        // "+ Add Label" Pill at the end
+        const addPill = document.createElement('button');
+        addPill.className = 'px-3 py-2 rounded-full font-medium text-xs text-zinc-400 dark:text-zinc-500 border border-dashed border-zinc-300 dark:border-zinc-700 hover:text-black dark:hover:text-white hover:border-zinc-500 whitespace-nowrap bezier-transition flex items-center gap-1.5';
+        addPill.innerHTML = '<i class="fa-solid fa-plus text-[10px]"></i><span>Add</span>';
+        addPill.addEventListener('click', openLabelDialog);
+        container.appendChild(addPill);
+      }
+
+      /* ==========================================================================
+         8. NOTES GRID RENDERING & FILTERING
+         ========================================================================== */
+      function getFilteredNotes() {
+        let result = [...state.notes];
+
+        // 1. View Filter (All vs Trash vs Label)
+        if (state.currentView === 'trash') {
+          result = result.filter(n => n.trashed === true);
+        } else {
+          result = result.filter(n => !n.trashed);
+          if (state.currentView !== 'all') {
+            result = result.filter(n => n.label === state.currentView);
+          }
+        }
+
+        // 2. Date Filter
+        if (state.selectedDateFilter && state.currentView !== 'trash') {
+          result = result.filter(n => {
+            if (!n.date) return false;
+            return n.date.startsWith(state.selectedDateFilter);
+          });
+        }
+
+        // 3. Search Filter
+        if (state.searchQuery.trim()) {
+          const q = state.searchQuery.toLowerCase().trim();
+          result = result.filter(n => {
+            const titleMatch = (n.title || '').toLowerCase().includes(q);
+            const contentMatch = (n.content || '').toLowerCase().includes(q);
+            const labelMatch = (n.label || '').toLowerCase().includes(q);
+            return titleMatch || contentMatch || labelMatch;
+          });
+        }
+
+        // 4. Sorting
+        result.sort((a, b) => {
+          if (state.currentView !== 'trash') {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+          }
+
+          const order = state.settings.sortOrder;
+          if (order === 'oldest') {
+            return new Date(a.date || a.updatedAt) - new Date(b.date || b.updatedAt);
+          } else if (order === 'title_asc') {
+            return (a.title || '').localeCompare(b.title || '');
+          } else if (order === 'title_desc') {
+            return (b.title || '').localeCompare(a.title || '');
+          } else {
+            // Newest first (default)
+            return new Date(b.date || b.updatedAt) - new Date(a.date || a.updatedAt);
+          }
+        });
+
+        return result;
+      }
+
+      function renderNotes() {
+        const grid = document.getElementById('notes-grid');
+        const emptyState = document.getElementById('empty-state');
+        const viewTitle = document.getElementById('view-title');
+        const countBadge = document.getElementById('view-count-badge');
+        const trashControls = document.getElementById('trash-controls');
+
+        const filtered = getFilteredNotes();
+
+        // Update view title and count
+        if (state.currentView === 'trash') {
+          viewTitle.textContent = 'Trash';
+          trashControls.classList.remove('hidden');
+        } else if (state.currentView === 'all') {
+          viewTitle.textContent = state.selectedDateFilter 
+            ? `Notes (${formatDateDisplay(state.selectedDateFilter)})` 
+            : 'All Notes';
+          trashControls.classList.add('hidden');
+        } else {
+          viewTitle.textContent = `${state.currentView}`;
+          trashControls.classList.add('hidden');
+        }
+
+        countBadge.textContent = filtered.length;
+
+        // Toggle Grid vs List layout classes
+        if (state.settings.layout === 'list') {
+          grid.className = 'flex flex-col gap-3 max-w-3xl mx-auto w-full min-h-[300px]';
+        } else {
+          grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-max items-start min-h-[300px]';
+        }
+
+        grid.innerHTML = '';
+
+        if (filtered.length === 0) {
+          emptyState.classList.remove('hidden');
+          const emptyTitle = document.getElementById('empty-state-title');
+          const emptyDesc = document.getElementById('empty-state-desc');
+          const emptyCreateBtn = document.getElementById('empty-create-btn');
+
+          if (state.searchQuery) {
+            emptyTitle.textContent = 'No matching notes';
+            emptyDesc.textContent = `No notes found for "${escapeHTML(state.searchQuery)}"`;
+            emptyCreateBtn.classList.add('hidden');
+          } else if (state.currentView === 'trash') {
+            emptyTitle.textContent = 'Trash is empty';
+            emptyDesc.textContent = 'Trashed notes will appear here before permanent deletion.';
+            emptyCreateBtn.classList.add('hidden');
+          } else {
+            emptyTitle.textContent = 'No notes yet';
+            emptyDesc.textContent = 'Tap below to capture your thoughts in a snap.';
+            emptyCreateBtn.classList.remove('hidden');
+          }
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        filtered.forEach(note => {
+          const card = createNoteCardElement(note);
+          grid.appendChild(card);
+        });
+
+        updateDrawerNavigation();
+      }
+
+      function createNoteCardElement(note) {
+        const card = document.createElement('article');
+        const colorClass = `card-color-${note.color || 'blue'}`;
+
+        card.className = `group relative rounded-3xl p-5 cursor-pointer bezier-transition hover:shadow-xl hover:-translate-y-1 select-none flex flex-col justify-between ${colorClass}`;
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('data-id', note.id);
+
+        const safeTitle = escapeHTML(note.title) || 'Untitled Note';
+        const formattedContent = formatPreviewText(note.content);
+        const safeLabel = escapeHTML(note.label) || 'Note';
+        const safeDate = formatDateDisplay(note.date || note.updatedAt);
+
+        card.innerHTML = `
+          <div>
+            <!-- Header Row: Title & Action Buttons -->
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <h3 class="font-bold text-[17px] sm:text-[18px] leading-snug tracking-tight pr-1">${safeTitle}</h3>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                ${note.pinned ? '<i class="fa-solid fa-thumbtack text-xs text-amber-600 dark:text-amber-400" title="Pinned"></i>' : ''}
+                <!-- Hover-only action buttons -->
+                <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1 bezier-transition">
+                  <button class="card-trash-btn w-7 h-7 rounded-full bg-black/10 dark:bg-white/10 hover:bg-red-500 hover:text-white flex items-center justify-center text-xs bezier-transition" title="Move to trash">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content preview -->
+            <div class="note-text-body font-normal opacity-95 line-clamp-6 mb-4">
+              ${formattedContent}
+            </div>
+          </div>
+
+          <!-- Bottom Row: Label Badge & Date -->
+          <div class="flex items-center justify-between pt-2.5 border-t border-black/5 dark:border-white/5 text-xs">
+            <span class="px-2.5 py-0.5 rounded-full font-semibold text-[11px] bg-black/10 dark:bg-white/10 tracking-wide">
+              ${safeLabel}
+            </span>
+            <span class="text-[11px] opacity-70 font-medium">
+              ${safeDate}
+            </span>
+          </div>
+        `;
+
+        // Card Click opens editor
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.card-trash-btn')) return;
+          openEditor(note.id);
+        });
+
+        // Hover trash button handler
+        const trashBtn = card.querySelector('.card-trash-btn');
+        if (trashBtn) {
+          trashBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (state.currentView === 'trash') {
+              if (confirm('Delete this note forever?')) {
+                deleteNotePermanently(note.id);
+              }
+            } else {
+              softDeleteNote(note.id);
+            }
+          });
+        }
+
+        return card;
+      }
+
+      /* ==========================================================================
+         9. DRAWER COMPONENT
+         ========================================================================== */
+      function openDrawer() {
+        const backdrop = document.getElementById('drawer-backdrop');
+        const drawer = document.getElementById('drawer');
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        backdrop.classList.add('opacity-100');
+        drawer.classList.remove('-translate-x-full');
+        drawer.classList.add('translate-x-0');
+        updateDrawerNavigation();
+      }
+
+      function closeDrawer() {
+        const backdrop = document.getElementById('drawer-backdrop');
+        const drawer = document.getElementById('drawer');
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        drawer.classList.remove('translate-x-0');
+        drawer.classList.add('-translate-x-full');
+      }
+
+      function updateDrawerNavigation() {
+        const activeCount = state.notes.filter(n => !n.trashed).length;
+        const trashCount = state.notes.filter(n => n.trashed).length;
+
+        document.getElementById('drawer-all-count').textContent = activeCount;
+        document.getElementById('drawer-trash-count').textContent = trashCount;
+
+        const labelsList = document.getElementById('drawer-labels-list');
+        if (!labelsList) return;
+        labelsList.innerHTML = '';
+
+        state.labels.forEach(label => {
+          const count = state.notes.filter(n => !n.trashed && n.label === label).length;
+          const isSelected = state.currentView === label;
+
+          const btn = document.createElement('button');
+          btn.className = `w-full flex items-center justify-between px-3.5 py-2 rounded-2xl text-sm font-medium bezier-transition ${
+            isSelected 
+              ? 'bg-black text-white dark:bg-white dark:text-black' 
+              : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          }`;
+          btn.innerHTML = `
+            <div class="flex items-center gap-2.5 truncate">
+              <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-white dark:bg-black' : 'bg-zinc-400'}"></span>
+              <span class="truncate">${escapeHTML(label)}</span>
+            </div>
+            <span class="px-2 py-0.5 text-xs rounded-full font-bold ${
+              isSelected 
+                ? 'bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black' 
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500'
+            }">${count}</span>
+          `;
+
+          btn.addEventListener('click', () => {
+            state.currentView = label;
+            renderCategoryPills();
+            renderNotes();
+            closeDrawer();
+          });
+
+          labelsList.appendChild(btn);
+        });
+
+        const navItems = document.querySelectorAll('.drawer-nav-item');
+        navItems.forEach(item => {
+          const view = item.getAttribute('data-view');
+          if (state.currentView === view) {
+            item.className = 'drawer-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium bezier-transition bg-black text-white dark:bg-white dark:text-black';
+          } else {
+            item.className = 'drawer-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 bezier-transition';
+          }
+        });
+      }
+
+      /* ==========================================================================
+         10. NOTE ACTIONS (CREATE, EDIT, SOFT-DELETE, RESTORE, PERMA-DELETE)
+         ========================================================================== */
+      function openEditor(noteId = null) {
+        state.activeEditingNoteId = noteId;
+        const backdrop = document.getElementById('editor-backdrop');
+        const sheet = document.getElementById('note-editor');
+        const titleInput = document.getElementById('editor-title-input');
+        const contentInput = document.getElementById('editor-content-input');
+        const labelSelect = document.getElementById('editor-label-select');
+        const dateDisplay = document.getElementById('editor-date-display');
+        const statusText = document.getElementById('editor-status-text');
+        const pinBtn = document.getElementById('editor-pin-btn');
+        const deleteBtn = document.getElementById('editor-delete-btn');
+        const normalActions = document.getElementById('editor-normal-actions');
+        const trashActions = document.getElementById('editor-trash-actions');
+
+        // Populate label options
+        labelSelect.innerHTML = '';
+        state.labels.forEach(lbl => {
+          const opt = document.createElement('option');
+          opt.value = lbl;
+          opt.textContent = lbl;
+          labelSelect.appendChild(opt);
+        });
+
+        if (noteId) {
+          const note = state.notes.find(n => n.id === noteId);
+          if (!note) return;
+
+          titleInput.value = note.title || '';
+          contentInput.value = note.content || '';
+          labelSelect.value = note.label || state.labels[0] || 'Personal';
+          dateDisplay.textContent = formatDateDisplay(note.date || note.updatedAt);
+          statusText.textContent = note.trashed ? 'Trash Note' : 'Edit Note';
+          selectColorSwatch(note.color || 'blue');
+
+          if (note.trashed) {
+            normalActions.classList.add('hidden');
+            trashActions.classList.remove('hidden');
+            titleInput.setAttribute('disabled', 'true');
+            contentInput.setAttribute('disabled', 'true');
+            labelSelect.setAttribute('disabled', 'true');
+          } else {
+            normalActions.classList.remove('hidden');
+            trashActions.classList.add('hidden');
+            deleteBtn.classList.remove('hidden');
+            titleInput.removeAttribute('disabled');
+            contentInput.removeAttribute('disabled');
+            labelSelect.removeAttribute('disabled');
+          }
+
+          updatePinButton(note.pinned);
+        } else {
+          // Creating New Note
+          titleInput.value = '';
+          contentInput.value = '';
+          labelSelect.value = state.currentView !== 'all' && state.currentView !== 'trash' 
+            ? state.currentView 
+            : (state.labels[0] || 'Personal');
+          dateDisplay.textContent = 'Today';
+          statusText.textContent = 'New Note';
+          selectColorSwatch('blue');
+
+          normalActions.classList.remove('hidden');
+          trashActions.classList.add('hidden');
+          deleteBtn.classList.add('hidden');
+          titleInput.removeAttribute('disabled');
+          contentInput.removeAttribute('disabled');
+          labelSelect.removeAttribute('disabled');
+          updatePinButton(false);
+        }
+
+        updateEditorStats();
+
+        // Slide up animation
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        backdrop.classList.add('opacity-100');
+        sheet.classList.remove('translate-y-full');
+        sheet.classList.add('translate-y-0');
+
+        setTimeout(() => {
+          if (!noteId) titleInput.focus();
+        }, 300);
+      }
+
+      function closeEditor() {
+        const backdrop = document.getElementById('editor-backdrop');
+        const sheet = document.getElementById('note-editor');
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        sheet.classList.remove('translate-y-0');
+        sheet.classList.add('translate-y-full');
+        state.activeEditingNoteId = null;
+      }
+
+      function selectColorSwatch(color) {
+        state.selectedEditorColor = color;
+        const swatches = document.querySelectorAll('.color-swatch-btn');
+        swatches.forEach(btn => {
+          if (btn.getAttribute('data-color') === color) {
+            btn.classList.add('ring-2', 'ring-offset-2', 'ring-black', 'dark:ring-white', 'scale-110');
+          } else {
+            btn.classList.remove('ring-2', 'ring-offset-2', 'ring-black', 'dark:ring-white', 'scale-110');
+          }
+        });
+      }
+
+      function updatePinButton(isPinned) {
+        const pinBtn = document.getElementById('editor-pin-btn');
+        if (isPinned) {
+          pinBtn.classList.add('text-amber-500');
+          pinBtn.classList.remove('text-zinc-400');
+        } else {
+          pinBtn.classList.remove('text-amber-500');
+          pinBtn.classList.add('text-zinc-400');
+        }
+      }
+
+      function updateEditorStats() {
+        const content = document.getElementById('editor-content-input').value || '';
+        const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+        const chars = content.length;
+        document.getElementById('editor-stats').textContent = `${words} words • ${chars} characters`;
+      }
+
+      function saveNoteFromEditor() {
+        const titleInput = document.getElementById('editor-title-input');
+        const contentInput = document.getElementById('editor-content-input');
+        const labelSelect = document.getElementById('editor-label-select');
+        const pinBtn = document.getElementById('editor-pin-btn');
+
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        const label = labelSelect.value;
+        const color = state.selectedEditorColor || 'blue';
+        const isPinned = pinBtn.classList.contains('text-amber-500');
+
+        if (!title && !content) {
+          showToast('Note cannot be empty', 'fa-circle-exclamation', true);
+          return;
+        }
+
+        const now = new Date().toISOString();
+
+        if (state.activeEditingNoteId) {
+          // Update existing note
+          const noteIndex = state.notes.findIndex(n => n.id === state.activeEditingNoteId);
+          if (noteIndex !== -1) {
+            state.notes[noteIndex] = {
+              ...state.notes[noteIndex],
+              title: title || 'Untitled Note',
+              content: content,
+              label: label,
+              color: color,
+              pinned: isPinned,
+              updatedAt: now
+            };
+            showToast('Note updated');
+          }
+        } else {
+          // Create new note
+          const newNote = {
+            id: 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+            title: title || 'Untitled Note',
+            content: content,
+            label: label,
+            color: color,
+            pinned: isPinned,
+            trashed: false,
+            date: now,
+            updatedAt: now
+          };
+          state.notes.unshift(newNote);
+          showToast('Note saved');
+        }
+
+        saveNotes();
+        renderNotes();
+        closeEditor();
+      }
+
+      function softDeleteNote(noteId) {
+        const note = state.notes.find(n => n.id === noteId);
+        if (!note) return;
+        note.trashed = true;
+        note.updatedAt = new Date().toISOString();
+        saveNotes();
+        renderNotes();
+        showToast('Moved to Trash', 'fa-trash-can');
+      }
+
+      function restoreNote(noteId) {
+        const note = state.notes.find(n => n.id === noteId);
+        if (!note) return;
+        note.trashed = false;
+        note.updatedAt = new Date().toISOString();
+        saveNotes();
+        renderNotes();
+        showToast('Note restored', 'fa-rotate-left');
+      }
+
+      function deleteNotePermanently(noteId) {
+        state.notes = state.notes.filter(n => n.id !== noteId);
+        saveNotes();
+        renderNotes();
+        showToast('Note permanently deleted', 'fa-trash');
+      }
+
+      function emptyTrash() {
+        const trashCount = state.notes.filter(n => n.trashed).length;
+        if (trashCount === 0) return;
+        if (confirm(`Permanently delete all ${trashCount} notes in Trash?`)) {
+          state.notes = state.notes.filter(n => !n.trashed);
+          saveNotes();
+          renderNotes();
+          showToast('Trash emptied', 'fa-trash-can');
+        }
+      }
+
+      /* ==========================================================================
+         11. CUSTOM LABEL DIALOG (Material 3 Style Animation & Auto-Purge)
+         ========================================================================== */
+      function openLabelDialog() {
+        const backdrop = document.getElementById('label-dialog-backdrop');
+        const dialog = document.getElementById('label-dialog');
+        renderLabelDialogList();
+
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        backdrop.classList.add('opacity-100');
+        dialog.classList.remove('scale-95', 'opacity-0');
+        dialog.classList.add('scale-100', 'opacity-100');
+      }
+
+      function closeLabelDialog() {
+        const backdrop = document.getElementById('label-dialog-backdrop');
+        const dialog = document.getElementById('label-dialog');
+
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        dialog.classList.remove('scale-100', 'opacity-100');
+        dialog.classList.add('scale-95', 'opacity-0');
+
+        renderCategoryPills();
+        updateDrawerNavigation();
+      }
+
+      function renderLabelDialogList() {
+        const list = document.getElementById('label-dialog-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        state.labels.forEach((label) => {
+          const noteCount = state.notes.filter(n => !n.trashed && n.label === label).length;
+          const isDefault = DEFAULT_LABELS.includes(label);
+
+          const item = document.createElement('div');
+          item.className = 'flex items-center justify-between px-3.5 py-2 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 text-sm';
+          item.innerHTML = `
+            <div class="flex items-center gap-2 truncate">
+              <i class="fa-solid fa-tag text-xs text-zinc-400"></i>
+              <span class="font-medium truncate">${escapeHTML(label)}</span>
+              <span class="text-[11px] text-zinc-400">(${noteCount} notes)</span>
+            </div>
+            <div class="flex items-center gap-1">
+              ${!isDefault || noteCount === 0 ? `
+                <button class="delete-label-btn text-zinc-400 hover:text-red-500 w-7 h-7 rounded-full flex items-center justify-center bezier-transition" title="Delete label" data-label="${escapeHTML(label)}">
+                  <i class="fa-regular fa-trash-can text-xs"></i>
+                </button>
+              ` : '<span class="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold px-2">Default</span>'}
+            </div>
+          `;
+
+          const delBtn = item.querySelector('.delete-label-btn');
+          if (delBtn) {
+            delBtn.addEventListener('click', () => {
+              deleteLabel(label);
+            });
+          }
+
+          list.appendChild(item);
+        });
+      }
+
+      function addCustomLabel() {
+        const input = document.getElementById('new-label-input');
+        const val = input.value.trim();
+        if (!val) return;
+
+        if (state.labels.some(l => l.toLowerCase() === val.toLowerCase())) {
+          showToast('Label already exists', 'fa-triangle-exclamation', true);
+          return;
+        }
+
+        state.labels.push(val);
+        saveLabels();
+        input.value = '';
+        renderLabelDialogList();
+        renderCategoryPills();
+        showToast(`Label "${val}" created`);
+      }
+
+      function deleteLabel(labelToDelete) {
+        state.labels = state.labels.filter(l => l !== labelToDelete);
+        state.notes.forEach(n => {
+          if (n.label === labelToDelete) {
+            n.label = state.labels[0] || 'Personal';
+          }
+        });
+        saveNotes();
+        saveLabels();
+        renderLabelDialogList();
+        renderCategoryPills();
+        renderNotes();
+        showToast(`Label "${labelToDelete}" removed`);
+      }
+
+      function autoPurgeUnusedLabels() {
+        const initialCount = state.labels.length;
+        state.labels = state.labels.filter(label => {
+          if (DEFAULT_LABELS.includes(label)) return true;
+          const count = state.notes.filter(n => !n.trashed && n.label === label).length;
+          return count > 0;
+        });
+
+        const purged = initialCount - state.labels.length;
+        saveLabels();
+        renderLabelDialogList();
+        renderCategoryPills();
+
+        if (purged > 0) {
+          showToast(`Purged ${purged} unused label(s)`, 'fa-broom');
+        } else {
+          showToast('No unused custom labels to purge');
+        }
+      }
+
+      /* ==========================================================================
+         12. SETTINGS MODAL & EXPORT/IMPORT
+         ========================================================================== */
+      function openSettingsDialog() {
+        const backdrop = document.getElementById('settings-dialog-backdrop');
+        const dialog = document.getElementById('settings-dialog');
+        const sortSelect = document.getElementById('settings-sort-select');
+
+        if (sortSelect) sortSelect.value = state.settings.sortOrder || 'newest';
+
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        backdrop.classList.add('opacity-100');
+        dialog.classList.remove('scale-95', 'opacity-0');
+        dialog.classList.add('scale-100', 'opacity-100');
+      }
+
+      function closeSettingsDialog() {
+        const backdrop = document.getElementById('settings-dialog-backdrop');
+        const dialog = document.getElementById('settings-dialog');
+
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        dialog.classList.remove('scale-100', 'opacity-100');
+        dialog.classList.add('scale-95', 'opacity-0');
+      }
+
+      function exportDataToJSON() {
+        const backupData = {
+          app: 'Note It',
+          version: '1.0',
+          exportedAt: new Date().toISOString(),
+          notes: state.notes,
+          labels: state.labels,
+          settings: state.settings
+        };
+
+        const jsonStr = JSON.stringify(backupData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `NoteIt_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Notes exported successfully');
+      }
+
+      function importDataFromJSON(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (data.notes && Array.isArray(data.notes)) {
+              state.notes = data.notes;
+              if (data.labels && Array.isArray(data.labels)) {
+                state.labels = data.labels;
+              }
+              saveNotes();
+              saveLabels();
+              renderCategoryPills();
+              renderNotes();
+              closeSettingsDialog();
+              showToast('Backup restored successfully!');
+            } else {
+              showToast('Invalid JSON backup file', 'fa-triangle-exclamation', true);
+            }
+          } catch (err) {
+            console.error('Import error:', err);
+            showToast('Failed to parse file', 'fa-triangle-exclamation', true);
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function resetSampleData() {
+        if (confirm('Restore demo notes matching the reference image? Current notes will be replaced with sample notes.')) {
+          state.notes = [...SEED_NOTES];
+          state.labels = [...DEFAULT_LABELS];
+          saveNotes();
+          saveLabels();
+          renderCategoryPills();
+          renderNotes();
+          closeSettingsDialog();
+          showToast('Demo notes restored!');
+        }
+      }
+
+      /* ==========================================================================
+         13. EVENT LISTENERS SETUP
+         ========================================================================== */
+      function setupEventListeners() {
+        // 1. Splash Screen Fade-out (Exact 1 second delay)
+        setTimeout(() => {
+          const splash = document.getElementById('splash-screen');
+          if (splash) {
+            splash.classList.add('opacity-0', 'pointer-events-none', 'scale-105');
+            setTimeout(() => {
+              splash.style.display = 'none';
+            }, 500);
+          }
+        }, 1000);
+
+        // 2. Drawer Triggers
+        document.getElementById('open-drawer-btn').addEventListener('click', openDrawer);
+        document.getElementById('close-drawer-btn').addEventListener('click', closeDrawer);
+        document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
+
+        // Drawer nav buttons
+        document.querySelectorAll('.drawer-nav-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const view = item.getAttribute('data-view');
+            state.currentView = view;
+            renderCategoryPills();
+            renderNotes();
+            closeDrawer();
+          });
+        });
+
+        document.getElementById('drawer-manage-labels-btn').addEventListener('click', () => {
+          closeDrawer();
+          openLabelDialog();
+        });
+
+        document.getElementById('drawer-settings-btn').addEventListener('click', () => {
+          closeDrawer();
+          openSettingsDialog();
+        });
+
+        // 3. Theme Toggles
+        const toggleTheme = () => {
+          state.settings.darkMode = !state.settings.darkMode;
+          saveSettings();
+          applyTheme();
+        };
+
+        document.getElementById('header-theme-toggle-btn').addEventListener('click', toggleTheme);
+        document.getElementById('drawer-theme-toggle-btn').addEventListener('click', toggleTheme);
+        document.getElementById('settings-theme-toggle').addEventListener('change', (e) => {
+          state.settings.darkMode = e.target.checked;
+          saveSettings();
+          applyTheme();
+        });
+
+        // 4. Live Search
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+
+        searchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          if (state.searchQuery) {
+            clearSearchBtn.classList.remove('hidden');
+          } else {
+            clearSearchBtn.classList.add('hidden');
+          }
+          renderNotes();
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          state.searchQuery = '';
+          clearSearchBtn.classList.add('hidden');
+          searchInput.focus();
+          renderNotes();
+        });
+
+        // 5. Grid / List Layout Toggle
+        const gridListBtn = document.getElementById('grid-list-toggle-btn');
+        const gridListIcon = document.getElementById('grid-list-icon');
+        gridListBtn.addEventListener('click', () => {
+          state.settings.layout = state.settings.layout === 'grid' ? 'list' : 'grid';
+          gridListIcon.className = state.settings.layout === 'grid' 
+            ? 'fa-solid fa-table-cells-large text-base' 
+            : 'fa-solid fa-list text-base';
+          saveSettings();
+          renderNotes();
+        });
+
+        // 6. Sort Menu Dropdown
+        const sortBtn = document.getElementById('sort-menu-btn');
+        const sortDropdown = document.getElementById('sort-dropdown');
+
+        sortBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sortDropdown.classList.toggle('hidden');
+          updateSortCheckmarks();
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!sortDropdown.contains(e.target) && e.target !== sortBtn) {
+            sortDropdown.classList.add('hidden');
+          }
+        });
+
+        function updateSortCheckmarks() {
+          document.querySelectorAll('.sort-option').forEach(btn => {
+            const sortVal = btn.getAttribute('data-sort');
+            const check = btn.querySelector('.sort-check');
+            if (sortVal === state.settings.sortOrder) {
+              check.classList.remove('hidden');
+            } else {
+              check.classList.add('hidden');
+            }
+          });
+        }
+
+        document.querySelectorAll('.sort-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.settings.sortOrder = btn.getAttribute('data-sort');
+            saveSettings();
+            sortDropdown.classList.add('hidden');
+            renderNotes();
+            showToast(`Sorted by ${btn.querySelector('span').textContent}`);
+          });
+        });
+
+        // 7. Notification Bell Click (Shows helpful quick tip)
+        document.getElementById('notification-bell-btn').addEventListener('click', () => {
+          showToast('Pro Tip: Press "N" to quickly create a note!', 'fa-bell');
+        });
+
+        // 8. Clear Date Filter Button
+        document.getElementById('clear-date-filter-btn').addEventListener('click', () => {
+          state.selectedDateFilter = null;
+          renderDateStrip();
+          renderNotes();
+        });
+
+        // 9. Empty State & FAB Create Note Buttons
+        document.getElementById('fab-create-btn').addEventListener('click', () => openEditor(null));
+        document.getElementById('empty-create-btn').addEventListener('click', () => openEditor(null));
+
+        // Keyboard Shortcut: 'N' to create note, 'Esc' to close dialogs
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeEditor();
+            closeDrawer();
+            closeLabelDialog();
+            closeSettingsDialog();
+          } else if ((e.key === 'n' || e.key === 'N') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            openEditor(null);
+          }
+        });
+
+        // 10. Editor Actions
+        document.getElementById('close-editor-btn').addEventListener('click', closeEditor);
+        document.getElementById('editor-backdrop').addEventListener('click', closeEditor);
+        document.getElementById('save-note-btn').addEventListener('click', saveNoteFromEditor);
+
+        // Editor Pin toggle
+        document.getElementById('editor-pin-btn').addEventListener('click', () => {
+          const pinBtn = document.getElementById('editor-pin-btn');
+          const isCurrentlyPinned = pinBtn.classList.contains('text-amber-500');
+          updatePinButton(!isCurrentlyPinned);
+        });
+
+        // Editor Move to Trash button
+        document.getElementById('editor-delete-btn').addEventListener('click', () => {
+          if (state.activeEditingNoteId) {
+            softDeleteNote(state.activeEditingNoteId);
+            closeEditor();
+          }
+        });
+
+        // Trash Mode Actions in Editor
+        document.getElementById('restore-note-btn').addEventListener('click', () => {
+          if (state.activeEditingNoteId) {
+            restoreNote(state.activeEditingNoteId);
+            closeEditor();
+          }
+        });
+
+        document.getElementById('delete-forever-btn').addEventListener('click', () => {
+          if (state.activeEditingNoteId && confirm('Delete this note permanently?')) {
+            deleteNotePermanently(state.activeEditingNoteId);
+            closeEditor();
+          }
+        });
+
+        // Color Swatches Selection
+        document.querySelectorAll('.color-swatch-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectColorSwatch(btn.getAttribute('data-color'));
+          });
+        });
+
+        // Editor Textarea live stats
+        document.getElementById('editor-content-input').addEventListener('input', updateEditorStats);
+
+        // 11. Trash View Controls
+        document.getElementById('empty-trash-btn').addEventListener('click', emptyTrash);
+        document.getElementById('exit-trash-btn').addEventListener('click', () => {
+          state.currentView = 'all';
+          renderCategoryPills();
+          renderNotes();
+          updateDrawerNavigation();
+        });
+
+        // 12. Custom Label Dialog
+        document.getElementById('close-label-dialog-btn').addEventListener('click', closeLabelDialog);
+        document.getElementById('done-label-dialog-btn').addEventListener('click', closeLabelDialog);
+        document.getElementById('label-dialog-backdrop').addEventListener('click', (e) => {
+          if (e.target.id === 'label-dialog-backdrop') closeLabelDialog();
+        });
+        document.getElementById('add-label-btn').addEventListener('click', addCustomLabel);
+        document.getElementById('new-label-input').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') addCustomLabel();
+        });
+        document.getElementById('purge-unused-labels-btn').addEventListener('click', autoPurgeUnusedLabels);
+
+        // 13. Settings Dialog
+        document.getElementById('close-settings-dialog-btn').addEventListener('click', closeSettingsDialog);
+        document.getElementById('done-settings-btn').addEventListener('click', closeSettingsDialog);
+        document.getElementById('settings-dialog-backdrop').addEventListener('click', (e) => {
+          if (e.target.id === 'settings-dialog-backdrop') closeSettingsDialog();
+        });
+
+        // Settings: Font Size Slider
+        const fontSizeSlider = document.getElementById('font-size-slider');
+        fontSizeSlider.addEventListener('input', (e) => {
+          state.settings.fontSize = parseInt(e.target.value, 10);
+          applyFontSize();
+          saveSettings();
+        });
+
+        // Settings: Sort Select
+        const settingsSortSelect = document.getElementById('settings-sort-select');
+        settingsSortSelect.addEventListener('change', (e) => {
+          state.settings.sortOrder = e.target.value;
+          saveSettings();
+          renderNotes();
+        });
+
+        // Settings: Backup / Export & Import
+        document.getElementById('export-data-btn').addEventListener('click', exportDataToJSON);
+        document.getElementById('import-data-file').addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            importDataFromJSON(e.target.files[0]);
+            e.target.value = '';
+          }
+        });
+        document.getElementById('reset-sample-data-btn').addEventListener('click', resetSampleData);
+      }
+
+      /* ==========================================================================
+         14. INITIALIZATION
+         ========================================================================== */
+      function init() {
+        loadState();
+        applyTheme();
+        applyFontSize();
+        renderDateStrip();
+        renderCategoryPills();
+        renderNotes();
+        setupEventListeners();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+    })();
+  </script>
+</body>
+</html>
