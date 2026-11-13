@@ -170,7 +170,7 @@
       border: 1px solid #374151;
     }
 
-    /* Pulse animation for 1-second splash screen */
+    /* Pulse animation for 1-second splash screen (kept for reference but splash removed) */
     @keyframes subtlePulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.06); }
@@ -182,16 +182,7 @@
 </head>
 <body class="bg-[#FCFCFD] dark:bg-[#0D0E12] text-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
 
-  <!-- 1-SECOND SPLASH SCREEN WITH LOGO + FADE-OUT -->
-  <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-[#0D0E12] transition-all duration-500 ease-out">
-    <div class="relative flex flex-col items-center splash-logo-pulse">
-      <div class="w-20 h-20 rounded-3xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl mb-4">
-        <i class="fa-solid fa-note-sticky text-3xl"></i>
-      </div>
-      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">Note It</h1>
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 font-medium tracking-wide mt-1">Capture your vibe instantly</p>
-    </div>
-  </div>
+  <!-- Splash screen removed as requested -->
 
   <!-- STICKY BLURRED HEADER WITH INLINE SEARCH -->
   <header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 dark:bg-[#0D0E12]/85 border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 py-3 transition-colors duration-200">
@@ -1775,16 +1766,7 @@
          13. EVENT LISTENERS SETUP
          ========================================================================== */
       function setupEventListeners() {
-        // 1. Splash Screen Fade-out (Exact 1 second delay)
-        setTimeout(() => {
-          const splash = document.getElementById('splash-screen');
-          if (splash) {
-            splash.classList.add('opacity-0', 'pointer-events-none', 'scale-105');
-            setTimeout(() => {
-              splash.style.display = 'none';
-            }, 500);
-          }
-        }, 1000);
+        // Splash screen fade-out logic removed since splash screen is removed
 
         // 2. Drawer Triggers
         document.getElementById('open-drawer-btn').addEventListener('click', openDrawer);
@@ -2049,6 +2031,5 @@
 
     })();
   </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a59caeaaeffacc10',t:'MTc5NDU2MTQzNQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a59caeaaeffacc10',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"b20fbb14051e4dad99d13f71779b4a7c","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
