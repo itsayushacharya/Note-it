@@ -170,7 +170,7 @@
       border: 1px solid #374151;
     }
 
-    /* Pulse animation for 1-second splash screen */
+    /* Pulse animation for 1-second splash screen (kept for reference but splash removed) */
     @keyframes subtlePulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.06); }
@@ -182,16 +182,7 @@
 </head>
 <body class="bg-[#FCFCFD] dark:bg-[#0D0E12] text-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
 
-  <!-- 1-SECOND SPLASH SCREEN WITH LOGO + FADE-OUT -->
-  <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-[#0D0E12] transition-all duration-500 ease-out">
-    <div class="relative flex flex-col items-center splash-logo-pulse">
-      <div class="w-20 h-20 rounded-3xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-2xl mb-4">
-        <i class="fa-solid fa-note-sticky text-3xl"></i>
-      </div>
-      <h1 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">Note It</h1>
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 font-medium tracking-wide mt-1">Capture your vibe instantly</p>
-    </div>
-  </div>
+  <!-- Splash screen removed as requested -->
 
   <!-- STICKY BLURRED HEADER WITH INLINE SEARCH -->
   <header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 dark:bg-[#0D0E12]/85 border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 py-3 transition-colors duration-200">
@@ -322,6 +313,35 @@
         <i class="fa-solid fa-plus text-xs"></i>
         <span>Create Note</span>
       </button>
+    </div>
+
+    <!-- APP DOWNLOAD CARD (Added as requested) -->
+    <div class="mt-4 mb-2 max-w-6xl mx-auto w-full px-1">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/20 dark:to-pink-500/20 border border-indigo-200/50 dark:border-indigo-500/30 p-5 sm:p-6 backdrop-blur-sm">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg flex-shrink-0">
+              <i class="fa-solid fa-mobile-screen-button text-white text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-zinc-800 dark:text-zinc-100 flex items-center gap-2">
+                Get the Note It App
+                <span class="text-[10px] font-semibold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full">Android</span>
+              </h3>
+              <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">Take your notes anywhere. Download the APK directly from GitHub.</p>
+            </div>
+          </div>
+          <a 
+            href="https://github.com/itsayushacharya/Note-it/raw/refs/heads/main/app/Note-it.apk" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm font-semibold hover:opacity-90 active:scale-95 bezier-transition shadow-lg flex-shrink-0 w-full sm:w-auto justify-center"
+          >
+            <i class="fa-solid fa-download text-xs"></i>
+            <span>Download APK</span>
+          </a>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -1775,16 +1795,7 @@
          13. EVENT LISTENERS SETUP
          ========================================================================== */
       function setupEventListeners() {
-        // 1. Splash Screen Fade-out (Exact 1 second delay)
-        setTimeout(() => {
-          const splash = document.getElementById('splash-screen');
-          if (splash) {
-            splash.classList.add('opacity-0', 'pointer-events-none', 'scale-105');
-            setTimeout(() => {
-              splash.style.display = 'none';
-            }, 500);
-          }
-        }, 1000);
+        // Splash screen fade-out logic removed since splash screen is removed
 
         // 2. Drawer Triggers
         document.getElementById('open-drawer-btn').addEventListener('click', openDrawer);
